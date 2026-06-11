@@ -1,0 +1,6 @@
+{
+  "name": "Discipline Master",
+  "description": "A modern productivity companion for daily tasks, habits, and focus tracking powered by an AI Coach.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
