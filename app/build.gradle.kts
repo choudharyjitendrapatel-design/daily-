@@ -119,3 +119,27 @@ dependencies {
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
 }
+
+tasks.register<Copy>("copyApkForDownload") {
+    from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
+    into(file("${rootDir}/APK_DOWNLOAD"))
+}
+
+tasks.register<Copy>("copyApkToBuildOutputs") {
+    from(layout.buildDirectory.file("outputs/apk/debug/app-debug.apk"))
+    into(file("${rootDir}/.build-outputs"))
+}
+
+tasks.register("verifyApkSize") {
+    doLast {
+        val apkFile = file("${rootDir}/APK_DOWNLOAD/app-debug.apk")
+        if (apkFile.exists()) {
+            val sizeInMb = apkFile.length().toDouble() / (1024 * 1024)
+            println("VERIFIED APK SIZE: ${sizeInMb} MB (${apkFile.length()} bytes)")
+        } else {
+            println("ERROR: APK FILE DOES NOT EXIST")
+        }
+    }
+}
+
+

@@ -91,18 +91,7 @@ object Translations {
             "mood_rating" to "Mood rating",
             "reflect_notes_hint" to "Reflect and write down today's notes.",
             "productivity_coach_feedback" to "Productivity Coach Feedback",
-            "work_study" to "Work / Study",
-            "radha_counter" to "Radha Counter",
-            "radha_chants" to "Chants",
-            "radha_malas" to "Malas Done",
-            "radha_chants_today" to "Total Chants",
-            "radha_daily_goal" to "Daily Mala Goal",
-            "radha_sound" to "Sound",
-            "radha_vibration" to "Vibrate",
-            "radhe_radhe_text" to "Radhe Radhe",
-            "radha_chant_action" to "TAP TO CHANT",
-            "radha_reset" to "Reset Counter",
-            "radha_goal_completed" to "Goal Chanted!"
+            "work_study" to "Work / Study"
         ),
         "hi" to mapOf(
             "app_title" to "अनुशासन मास्टर",
@@ -186,18 +175,7 @@ object Translations {
             "mood_rating" to "मनोदशा रेटिंग",
             "reflect_notes_hint" to "आज के विचारों और आत्मचिंतन को संक्षेप में लिखें।",
             "productivity_coach_feedback" to "उत्पादकता मार्गदर्शक कोच प्रतिक्रिया",
-            "work_study" to "कार्य / अध्ययन",
-            "radha_counter" to "श्री राधा जाप काउंटर",
-            "radha_chants" to "जाप संख्या",
-            "radha_malas" to "माला पूर्ण",
-            "radha_chants_today" to "कुल जाप",
-            "radha_daily_goal" to "दैनिक माला लक्ष्य",
-            "radha_sound" to "ध्वनि",
-            "radha_vibration" to "कंपन",
-            "radhe_radhe_text" to "राधे राधे",
-            "radha_chant_action" to "जाप के लिए छुएं",
-            "radha_reset" to "काउंटर रीसेट",
-            "radha_goal_completed" to "दैनिक जाप लक्ष्य पूर्ण!"
+            "work_study" to "कार्य / अध्ययन"
         ),
         "es" to mapOf(
             "app_title" to "MAESTRO DE LA DISCIPLINA",
@@ -281,18 +259,7 @@ object Translations {
             "mood_rating" to "Calificación de humor",
             "reflect_notes_hint" to "Escribe tus reflexiones y notas para el día de hoy.",
             "productivity_coach_feedback" to "Recomendaciones del Entrenador IA",
-            "work_study" to "Trabajo / Estudio",
-            "radha_counter" to "Contador de Radha",
-            "radha_chants" to "Cantos",
-            "radha_malas" to "Malas Completados",
-            "radha_chants_today" to "Cantos Totales",
-            "radha_daily_goal" to "Meta Diaria de Malas",
-            "radha_sound" to "Sonido",
-            "radha_vibration" to "Vibración",
-            "radhe_radhe_text" to "Radhe Radhe",
-            "radha_chant_action" to "TOCA PARA CANTAR",
-            "radha_reset" to "Reiniciar",
-            "radha_goal_completed" to "¡Meta de Canto Completada!"
+            "work_study" to "Trabajo / Estudio"
         ),
         "de" to mapOf(
             "app_title" to "DISZIPLIN MEISTER",
@@ -376,18 +343,7 @@ object Translations {
             "mood_rating" to "Stimmung",
             "reflect_notes_hint" to "Notiere deine täglichen Gedanken und Reflexionen.",
             "productivity_coach_feedback" to "Feedback des KI-Coachs",
-            "work_study" to "Arbeit / Studium",
-            "radha_counter" to "Radha Zähler",
-            "radha_chants" to "Gesänge",
-            "radha_malas" to "Fertige Malas",
-            "radha_chants_today" to "Gesamt-Gesänge",
-            "radha_daily_goal" to "Mala Tagesziel",
-            "radha_sound" to "Ton",
-            "radha_vibration" to "Vibration",
-            "radhe_radhe_text" to "Radhe Radhe",
-            "radha_chant_action" to "TIPPEN ZUM SINGEN",
-            "radha_reset" to "Zurücksetzen",
-            "radha_goal_completed" to "Gesangsziel Erreicht!"
+            "work_study" to "Arbeit / Studium"
         )
     )
 

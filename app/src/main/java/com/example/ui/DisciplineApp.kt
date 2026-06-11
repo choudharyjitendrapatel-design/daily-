@@ -906,14 +906,23 @@ fun TaskBoardScreen(
     }
 }
 
-// ---------------- TIMER SCREEN (POMODORO & RADHA COUNTER) ----------------
+// ---------------- TIMER SCREEN (POMODORO) ----------------
 @Composable
 fun TimerScreen(
     viewModel: DisciplineViewModel,
     totalMinutes: Int
 ) {
     val lang = viewModel.selectedLanguage
-    var activeSubTab by remember { mutableStateOf("Pomodoro") }
+    val totalSeconds = viewModel.pomodoroTimeMinutes * 60
+    val elapsedSeconds = totalSeconds - viewModel.pomodoroTimeLeftSeconds
+    val percentageFinished = elapsedSeconds.toFloat() / totalSeconds.toFloat()
+
+    val formattedTime = String.format(
+        Locale.getDefault(),
+        "%02d:%02d",
+        viewModel.pomodoroTimeLeftSeconds / 60,
+        viewModel.pomodoroTimeLeftSeconds % 60
+    )
 
     Column(
         modifier = Modifier
@@ -923,505 +932,119 @@ fun TimerScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedKeepTogether(16.dp)
     ) {
-        // SEGMENTED SUB-TAB SELECTOR
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            SegmentedButton(
-                selected = activeSubTab == "Pomodoro",
-                onClick = { activeSubTab = "Pomodoro" },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2)
-            ) {
-                Text(Translations.getString(lang, "timer"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-            SegmentedButton(
-                selected = activeSubTab == "Radha",
-                onClick = { activeSubTab = "Radha" },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2)
-            ) {
-                Text(Translations.getString(lang, "radha_counter"), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-        }
+        Text(
+            text = Translations.getString(lang, "focus_pomodoro_engaged"),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.ExtraBold
+        )
 
-        Spacer(modifier = Modifier.height(4.dp))
-
-        if (activeSubTab == "Pomodoro") {
-            val totalSeconds = viewModel.pomodoroTimeMinutes * 60
-            val elapsedSeconds = totalSeconds - viewModel.pomodoroTimeLeftSeconds
-            val percentageFinished = elapsedSeconds.toFloat() / totalSeconds.toFloat()
-
-            val formattedTime = String.format(
-                Locale.getDefault(),
-                "%02d:%02d",
-                viewModel.pomodoroTimeLeftSeconds / 60,
-                viewModel.pomodoroTimeLeftSeconds % 60
-            )
-
-            Text(
-                text = Translations.getString(lang, "focus_pomodoro_engaged"),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.ExtraBold
-            )
-
-            // Session Quick Selector chips
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                listOf(5, 10, 25, 50).forEach { mins ->
-                    FilterChip(
-                        selected = viewModel.pomodoroTimeMinutes == mins,
-                        onClick = { viewModel.updateTimerMinutes(mins) },
-                        label = { Text("$mins Min") },
-                        enabled = !viewModel.isTimerRunning
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // CIRCULAR ADVANCED TIMER
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(240.dp)
-            ) {
-                val primaryColor = MaterialTheme.colorScheme.primary
-                val secondaryColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
-                Canvas(modifier = Modifier.size(220.dp)) {
-                    // Background Track ring
-                    drawCircle(color = secondaryColor, style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round))
-                    // Progress Active arc
-                    drawArc(
-                        color = primaryColor,
-                        startAngle = -270f,
-                        sweepAngle = 360f * (1f - percentageFinished),
-                        useCenter = false,
-                        style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
-                    )
-                }
-
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = formattedTime,
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = viewModel.timerCategory.uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.2.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // TIMER NAVIGATION DETAILS & CONTROL BUTTONS
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedKeepTogether(16.dp)
-            ) {
-                if (viewModel.isTimerRunning) {
-                    Button(
-                        onClick = { viewModel.pauseTimer() },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp)
-                            .testTag("timer_pause_button"),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                    ) {
-                        Icon(imageVector = Icons.Default.Pause, contentDescription = "Pause button", tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(Translations.getString(lang, "pause"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    }
-                } else {
-                    Button(
-                        onClick = { viewModel.startTimer() },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp)
-                            .testTag("timer_start_button"),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) {
-                        Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Start button")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(Translations.getString(lang, "start_session"), fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                Button(
-                    onClick = { viewModel.resetTimer() },
-                    modifier = Modifier
-                        .weight(0.8f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceBorderColors())
-                ) {
-                    Icon(imageVector = Icons.Default.Refresh, contentDescription = "Reset timer", tint = MaterialTheme.colorScheme.onSurface)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(Translations.getString(lang, "reset"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                }
-            }
-
-            // TIMER FOCUS TYPE SELECTOR
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = Translations.getString(lang, "category_alignment"),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedKeepTogether(6.dp)
-                    ) {
-                        listOf("Work / Study", "Meditation", "Exercise").forEach { cat ->
-                            OutlinedButton(
-                                onClick = { viewModel.timerCategory = cat },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(8.dp),
-                                border = BorderStroke(
-                                    1.dp,
-                                    if (viewModel.timerCategory == cat) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                                )
-                            ) {
-                                Text(cat, fontSize = 10.sp, maxLines = 1)
-                            }
-                        }
-                    }
-                }
-            }
-
-            // STATS SUMMARY
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SportsScore,
-                        contentDescription = "Focus icon",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(
-                            text = Translations.getString(lang, "total_session_accomplished"),
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                        Text(
-                            text = "$totalMinutes ${Translations.getString(lang, "focus_minutes_logged")}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        } else {
-            RadhaCounterComponent(viewModel = viewModel)
-        }
-    }
-}
-
-// ---------------- RADHA JAP COUNTER COMPONENT ----------------
-@Composable
-fun RadhaCounterComponent(
-    viewModel: DisciplineViewModel
-) {
-    val context = LocalContext.current
-    val lang = viewModel.selectedLanguage
-    val scrollState = rememberScrollState()
-
-    var showGoalDialog by remember { mutableStateOf(false) }
-    var tempGoalInput by remember { mutableStateOf(viewModel.radhaMalaTarget.toString()) }
-    var showResetDialog by remember { mutableStateOf(false) }
-
-    val playFeedback = {
-        if (viewModel.radhaSoundEnabled) {
-            try {
-                val toneGen = android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 80)
-                toneGen.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 50)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        if (viewModel.radhaVibrationEnabled) {
-            try {
-                val vibrator = context.getSystemService(android.content.Context.VIBRATOR_SERVICE) as? android.os.Vibrator
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    vibrator?.vibrate(android.os.VibrationEffect.createOneShot(35, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
-                } else {
-                    vibrator?.vibrate(35)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    val progressFraction = if (viewModel.radhaMalaTarget > 0) {
-        viewModel.radhaMalaCount.toFloat() / viewModel.radhaMalaTarget.toFloat()
-    } else {
-        1f
-    }
-    val boundedProgress = progressFraction.coerceIn(0f, 1f)
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(bottom = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedKeepTogether(16.dp)
-    ) {
-        // TOP INTRO CARD
-        Card(
+        // Session Quick Selector chips
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = Translations.getString(lang, "radha_counter").uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 1.sp
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Chant 'Radhe' to align focus, calm the mind and complete your daily spiritual discipline.",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Progress Indicator
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${Translations.getString(lang, "radha_malas")}: ${viewModel.radhaMalaCount} / ${viewModel.radhaMalaTarget}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "${(boundedProgress * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                LinearProgressIndicator(
-                    progress = { boundedProgress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
-                    color = Color(0xFFE5A93C),
-                    trackColor = MaterialTheme.colorScheme.surfaceBorderColors()
+            listOf(5, 10, 25, 50).forEach { mins ->
+                FilterChip(
+                    selected = viewModel.pomodoroTimeMinutes == mins,
+                    onClick = { viewModel.updateTimerMinutes(mins) },
+                    label = { Text("$mins Min") },
+                    enabled = !viewModel.isTimerRunning
                 )
             }
         }
 
-        // COLOURED CHANTING CIRCLE
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // CIRCULAR ADVANCED TIMER
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.size(240.dp)
         ) {
-            Surface(
-                onClick = {
-                    playFeedback()
-                    viewModel.incrementRadhaChant()
-                },
-                modifier = Modifier
-                    .size(210.dp)
-                    .clip(CircleShape)
-                    .testTag("radha_tapping_circle"),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
-                border = BorderStroke(4.dp, Brush.sweepGradient(
-                    listOf(
-                        Color(0xFFE5A93C),
-                        Color(0xFFD32F2F),
-                        Color(0xFFE5A93C)
-                    )
-                ))
-            ) {
-                val beadAngleOffset = (viewModel.radhaChantCount.toFloat() / 108f) * 360f
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    val radius = size.minDimension / 2.0f - 12.dp.toPx()
-                    val angleRad = Math.toRadians((beadAngleOffset - 90f).toDouble())
-                    val x = size.width / 2.0f + radius * Math.cos(angleRad).toFloat()
-                    val y = size.height / 2.0f + radius * Math.sin(angleRad).toFloat()
-
-                    drawCircle(
-                        color = Color(0xFFD32F2F),
-                        radius = 8.dp.toPx(),
-                        center = androidx.compose.ui.geometry.Offset(x, y)
-                    )
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = Translations.getString(lang, "radhe_radhe_text"),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = Color(0xFFD32F2F),
-                        fontWeight = FontWeight.ExtraBold,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "${viewModel.radhaChantCount} / 108",
-                        style = MaterialTheme.typography.displayMedium.copy(
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                            fontWeight = FontWeight.ExtraBold
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = Translations.getString(lang, "radha_chants").uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.sp
-                    )
-                }
-            }
-        }
-
-        // TAP HINT ACTION BUTTON
-        Button(
-            onClick = {
-                playFeedback()
-                viewModel.incrementRadhaChant()
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .testTag("radha_chants_increment_btn"),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE5A93C))
-        ) {
-            Icon(
-                imageVector = Icons.Default.OfflineBolt,
-                contentDescription = "Tap power",
-                tint = Color.White
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = Translations.getString(lang, "radha_chant_action"),
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
-                fontSize = 16.sp
-            )
-        }
-
-        // QUICK MALA TARGET SETTINGS
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedKeepTogether(8.dp)
-        ) {
-            listOf(1, 3, 5, 11).forEach { targetMalas ->
-                val isSelected = viewModel.radhaMalaTarget == targetMalas
-                OutlinedButton(
-                    onClick = { viewModel.updateRadhaMalaTarget(targetMalas) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(
-                        width = 1.5.dp,
-                        color = if (isSelected) Color(0xFFE5A93C) else MaterialTheme.colorScheme.surfaceBorderColors()
-                    ),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = if (isSelected) Color(0xFFE5A93C).copy(alpha = 0.1f) else Color.Transparent
-                    )
-                ) {
-                    Text(
-                        text = "$targetMalas Mala",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isSelected) Color(0xFFE5A93C) else MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
-                    )
-                }
-            }
-        }
-
-        // CUSTOM GOAL DIRECT ACTION CARD
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedButton(
-                onClick = {
-                    tempGoalInput = viewModel.radhaMalaTarget.toString()
-                    showGoalDialog = true
-                },
-                shape = RoundedCornerShape(10.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Edit Goal",
-                    modifier = Modifier.size(16.dp)
+            val primaryColor = MaterialTheme.colorScheme.primary
+            val secondaryColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f)
+            Canvas(modifier = Modifier.size(220.dp)) {
+                // Background Track ring
+                drawCircle(color = secondaryColor, style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round))
+                // Progress Active arc
+                drawArc(
+                    color = primaryColor,
+                    startAngle = -270f,
+                    sweepAngle = 360f * (1f - percentageFinished),
+                    useCenter = false,
+                    style = Stroke(width = 12.dp.toPx(), cap = StrokeCap.Round)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+            }
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = Translations.getString(lang, "radha_daily_goal"),
-                    style = MaterialTheme.typography.labelMedium
+                    text = formattedTime,
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
+                Text(
+                    text = viewModel.timerCategory.uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.2.sp
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // TIMER NAVIGATION DETAILS & CONTROL BUTTONS
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedKeepTogether(16.dp)
+        ) {
+            if (viewModel.isTimerRunning) {
+                Button(
+                    onClick = { viewModel.pauseTimer() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                        .testTag("timer_pause_button"),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                ) {
+                    Icon(imageVector = Icons.Default.Pause, contentDescription = "Pause button", tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(Translations.getString(lang, "pause"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                }
+            } else {
+                Button(
+                    onClick = { viewModel.startTimer() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp)
+                        .testTag("timer_start_button"),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(imageVector = Icons.Default.PlayArrow, contentDescription = "Start button")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(Translations.getString(lang, "start_session"), fontWeight = FontWeight.Bold)
+                }
             }
 
             Button(
-                onClick = { showResetDialog = true },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                shape = RoundedCornerShape(10.dp)
+                onClick = { viewModel.resetTimer() },
+                modifier = Modifier
+                    .weight(0.8f)
+                    .height(56.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceBorderColors())
             ) {
-                Icon(
-                    imageVector = Icons.Default.DeleteForever,
-                    contentDescription = "Reset Counter",
-                    tint = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.size(16.dp)
-                )
+                Icon(imageVector = Icons.Default.Refresh, contentDescription = "Reset timer", tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = Translations.getString(lang, "radha_reset"),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    fontWeight = FontWeight.Bold
-                )
+                Text(Translations.getString(lang, "reset"), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
         }
 
-        // SETTINGS & CONTROL PREFERENCE CARD
+        // TIMER FOCUS TYPE SELECTOR
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -1429,74 +1052,33 @@ fun RadhaCounterComponent(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "MEDITATION CONTROLS",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 1.sp
+                    text = Translations.getString(lang, "category_alignment"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-
+                Spacer(modifier = Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedKeepTogether(16.dp)
+                    horizontalArrangement = Arrangement.spacedKeepTogether(6.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { viewModel.toggleRadhaSound() }
-                            .border(
+                    listOf("Work / Study", "Meditation", "Exercise").forEach { cat ->
+                        OutlinedButton(
+                            onClick = { viewModel.timerCategory = cat },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(
                                 1.dp,
-                                if (viewModel.radhaSoundEnabled) Color(0xFFE5A93C).copy(alpha = 0.4f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
-                                RoundedCornerShape(10.dp)
+                                if (viewModel.timerCategory == cat) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
                             )
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (viewModel.radhaSoundEnabled) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
-                            contentDescription = "Sound control",
-                            tint = if (viewModel.radhaSoundEnabled) Color(0xFFE5A93C) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = Translations.getString(lang, "radha_sound"),
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { viewModel.toggleRadhaVibration() }
-                            .border(
-                                1.dp,
-                                if (viewModel.radhaVibrationEnabled) Color(0xFFE5A93C).copy(alpha = 0.4f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
-                                RoundedCornerShape(10.dp)
-                            )
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (viewModel.radhaVibrationEnabled) Icons.Default.Vibration else Icons.Default.Vibration,
-                            contentDescription = "Vibration control",
-                            tint = if (viewModel.radhaVibrationEnabled) Color(0xFFE5A93C) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = Translations.getString(lang, "radha_vibration"),
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold
-                        )
+                        ) {
+                            Text(cat, fontSize = 10.sp, maxLines = 1)
+                        }
                     }
                 }
             }
         }
 
-        // GRAND TOTAL STATUS COUNTER DISPLAY
+        // STATS SUMMARY
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
@@ -1506,86 +1088,25 @@ fun RadhaCounterComponent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.Spa,
-                    contentDescription = "Total Devotion Info Icon",
-                    tint = Color(0xFFD32F2F),
+                    imageVector = Icons.Default.SportsScore,
+                    contentDescription = "Focus icon",
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(28.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = Translations.getString(lang, "radha_chants_today"),
+                        text = Translations.getString(lang, "total_session_accomplished"),
                         style = MaterialTheme.typography.labelSmall
                     )
                     Text(
-                        text = "${viewModel.radhaTotalChants} chants accumulated",
+                        text = "$totalMinutes ${Translations.getString(lang, "focus_minutes_logged")}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
         }
-    }
-
-    if (showGoalDialog) {
-        AlertDialog(
-            onDismissRequest = { showGoalDialog = false },
-            title = { Text("Set Daily Mala Goal") },
-            text = {
-                Column {
-                    Text("Enter your chanting goal in number of Malas (1 Mala = 108 chants):")
-                    Spacer(modifier = Modifier.height(10.dp))
-                    OutlinedTextField(
-                        value = tempGoalInput,
-                        onValueChange = { tempGoalInput = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val intVal = tempGoalInput.toIntOrNull()
-                        if (intVal != null && intVal > 0) {
-                            viewModel.updateRadhaMalaTarget(intVal)
-                        }
-                        showGoalDialog = false
-                    }
-                ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showGoalDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-
-    if (showResetDialog) {
-        AlertDialog(
-            onDismissRequest = { showResetDialog = false },
-            title = { Text("Reset Chanting Statistics") },
-            text = { Text("Are you sure you want to reset all active chanting counts and Malas to 0?") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.resetRadhaCounter()
-                        showResetDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Reset", color = Color.White)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showResetDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
     }
 }
 
